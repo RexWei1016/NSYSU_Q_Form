@@ -17,14 +17,34 @@ class HomePage extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            color: Colors.green.shade100,
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              vm.announcement.message,
-              style: const TextStyle(fontSize: 16),
+          // 🔔 公告區塊
+          Card(
+            margin: const EdgeInsets.all(12),
+            color: Colors.yellow.shade100,
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '📢 公告訊息',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    vm.announcement.message,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ],
+              ),
             ),
           ),
+
+          // 🔧 可放其他內容
           const Expanded(
             child: Center(
               child: Text(
@@ -35,6 +55,7 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
+
       floatingActionButton: _buildFAB(context, vm),
     );
   }
