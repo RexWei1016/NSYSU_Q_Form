@@ -68,21 +68,23 @@ class HomePage extends StatelessWidget {
           heroTag: 'profile',
           label: const Text('個人基本資料'),
           icon: const Icon(Icons.person),
-          onPressed: vm.onProfilePressed,
+          onPressed: () => vm.onProfilePressed(context),
+
         ),
         const SizedBox(height: 10),
         FloatingActionButton.extended(
           heroTag: 'transport',
           label: const Text('交通方法日誌'),
           icon: const Icon(Icons.directions_bus),
-          onPressed: vm.onTransportPressed,
+          onPressed: () => vm.onTransportPressed(context),
+
         ),
         const SizedBox(height: 10),
         FloatingActionButton.extended(
           heroTag: 'food',
           label: const Text('購餐紀錄'),
           icon: const Icon(Icons.fastfood),
-          onPressed: vm.onFoodPressed,
+          onPressed: () => vm.onFoodPressed(context),
         ),
       ],
     );
