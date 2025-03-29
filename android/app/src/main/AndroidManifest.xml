@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="nsysu_q_form"
+        android:label="中山行動永續APP"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
