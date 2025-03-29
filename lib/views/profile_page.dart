@@ -96,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
     '數位與永續金融研究所',
     '其他' // 您要求的 "其他" 選項
   ];
-  final List<String> grades = ['大一', '大二', '大三', '大四', '碩一', '碩二'];
+  final List<String> grades = ['大一', '大二', '大三', '大四', '碩一', '碩二', '博班'];
   final List<String> birthYears = [
     for (int y = 1980; y <= DateTime
         .now()

@@ -48,7 +48,7 @@ class HomePage extends StatelessWidget {
           const Expanded(
             child: Center(
               child: Text(
-                '這裡可以顯示圖表、紀錄摘要等等',
+                '這裡...可以顯示圖表、紀錄摘要等等 (預計)',
                 style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
             ),

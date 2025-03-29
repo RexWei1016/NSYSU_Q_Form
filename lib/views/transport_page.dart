@@ -1,5 +1,8 @@
-//  lib/views/transport_page.dart
+// transport_page.dart (View)
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/transport_view_model.dart';
+import '../models/transport_record.dart';
 
 class TransportPage extends StatefulWidget {
   const TransportPage({super.key});
@@ -9,35 +12,20 @@ class TransportPage extends StatefulWidget {
 }
 
 class _TransportPageState extends State<TransportPage> {
-  final TextEditingController stepsController = TextEditingController();
-  final TextEditingController bikeController = TextEditingController();
-  final TextEditingController publicTransportController = TextEditingController();
+  final stepsController = TextEditingController();
+  final bikeController = TextEditingController();
+  final publicController = TextEditingController();
 
-  int todaySteps = 0;
-  int todayBike = 0;
-  int todayPublic = 0;
-
-  // 假設一週的資料（可改成從資料庫讀取）
-  final List<Map<String, dynamic>> weekData = [
-    {'day': '一', 'steps': 1200, 'bike': 2, 'public': 1},
-    {'day': '二', 'steps': 1600, 'bike': 1, 'public': 2},
-    {'day': '三', 'steps': 1500, 'bike': 3, 'public': 0},
-    {'day': '四', 'steps': 1100, 'bike': 1, 'public': 1},
-    {'day': '五', 'steps': 1800, 'bike': 0, 'public': 2},
-    {'day': '六', 'steps': 1000, 'bike': 2, 'public': 1},
-    {'day': '日', 'steps': 900,  'bike': 1, 'public': 0},
-  ];
-
-  void submitTodayRecord() {
-    setState(() {
-      todaySteps = int.tryParse(stepsController.text) ?? 0;
-      todayBike = int.tryParse(bikeController.text) ?? 0;
-      todayPublic = int.tryParse(publicTransportController.text) ?? 0;
-    });
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<TransportViewModel>().loadWeeklyData());
   }
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<TransportViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('交通日誌'),
@@ -47,44 +35,39 @@ class _TransportPageState extends State<TransportPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 🔼 輸入區提前
             TextField(
               controller: stepsController,
-              decoration: const InputDecoration(
-                labelText: '今日步數',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: '今日步數', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
             TextField(
               controller: bikeController,
-              decoration: const InputDecoration(
-                labelText: '今日摩托車次數',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: '今日摩托車次數', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: publicTransportController,
-              decoration: const InputDecoration(
-                labelText: '今日公共交通次數',
-                border: OutlineInputBorder(),
-              ),
+              controller: publicController,
+              decoration: const InputDecoration(labelText: '今日公共交通次數', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: submitTodayRecord,
+              onPressed: () {
+                final steps = int.tryParse(stepsController.text) ?? 0;
+                final bike = int.tryParse(bikeController.text) ?? 0;
+                final pub = int.tryParse(publicController.text) ?? 0;
+                final today = DateTime.now().toIso8601String().substring(0, 10);
+                vm.submitToday(today, steps, bike, pub);
+              },
               child: const Text('提交今日紀錄'),
             ),
             const SizedBox(height: 10),
-            Text('今日步數：$todaySteps', style: const TextStyle(fontSize: 16)),
-            Text('今日摩托車次數：$todayBike', style: const TextStyle(fontSize: 16)),
-            Text('今日公共交通次數：$todayPublic', style: const TextStyle(fontSize: 16)),
+            Text('今日步數：${vm.todaySteps}', style: const TextStyle(fontSize: 16)),
+            Text('今日摩托車次數：${vm.todayBike}', style: const TextStyle(fontSize: 16)),
+            Text('今日公共交通次數：${vm.todayPublic}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
-            // ⬇️ 一週統計表格
             Card(
               elevation: 2,
               child: Padding(
@@ -93,19 +76,17 @@ class _TransportPageState extends State<TransportPage> {
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
                     columns: const [
-                      DataColumn(label: Text('日')),
+                      DataColumn(label: Text('日期')),
                       DataColumn(label: Text('步數')),
                       DataColumn(label: Text('摩托車')),
                       DataColumn(label: Text('公共交通')),
                     ],
-                    rows: weekData.map((day) {
-                      return DataRow(cells: [
-                        DataCell(Text(day['day'])),
-                        DataCell(Text('${day['steps']}')),
-                        DataCell(Text('${day['bike']}')),
-                        DataCell(Text('${day['public']}')),
-                      ]);
-                    }).toList(),
+                    rows: vm.weeklyRecords.map((e) => DataRow(cells: [
+                      DataCell(Text(e.date.substring(5))),
+                      DataCell(Text('${e.steps}')),
+                      DataCell(Text('${e.bike}')),
+                      DataCell(Text('${e.publicTransport}')),
+                    ])).toList(),
                   ),
                 ),
               ),

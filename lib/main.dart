@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nsysu_q_form/viewmodels/food_record_view_model.dart';
+import 'package:nsysu_q_form/viewmodels/transport_view_model.dart';
 import 'package:nsysu_q_form/views/food_record_page.dart';
 import 'package:provider/provider.dart';
 import 'views/home_page.dart';
@@ -14,6 +16,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+        ChangeNotifierProvider(create: (_) => TransportViewModel()),
+        ChangeNotifierProvider(create: (_) => FoodRecordViewModel()),
       ],
       child: const MyApp(),
     ),
