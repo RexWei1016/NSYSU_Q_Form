@@ -28,3 +28,19 @@ samples, guidance on mobile development, and a full API reference.
 ```bash
 flutter pub global activate rename
 flutter pub global run rename setAppName --value "中山行動永續APP"
+```
+
+---
+
+## 🔐 推播相關設定（避免意外上傳憑證）
+
+若專案中有使用 FCM 推播，以下檔案應避免上傳至 GitHub：
+
+```
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+```
+
+請確認這些檔案已加入 `.gitignore`，避免憑證外洩。
+
+---
