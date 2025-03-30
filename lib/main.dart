@@ -18,7 +18,7 @@ void main() async {
   await Firebase.initializeApp();
 
   // 背景推播處理器註冊
-  FirebaseMessaging.onBackgroundMessage(NotificationService.backgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await NotificationService.init(); // 初始化通知服務
 

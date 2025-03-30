@@ -4,52 +4,76 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("背景收到通知: ${message.notification?.title}");
+  await NotificationService.showLocalNotification(message);
+}
+
 class NotificationService {
   static final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _local = FlutterLocalNotificationsPlugin();
 
-  // 初始化 FCM 與本地通知
   static Future<void> init() async {
-    // 啟用本地通知設定
+    // Android 設定
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings = InitializationSettings(android: androidSettings);
+
+    // iOS 設定：初始化通知
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: false, // 初始不請求，在下面統一處理
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings, // ✅ 加入 iOS 初始化
+    );
+
     await _local.initialize(initSettings);
 
-    // FCM 權限請求（iOS 才會生效）
-    await _fcm.requestPermission();
+    // iOS / Android 通知權限請求
+    await _fcm.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
-    // 前景通知處理
+    // iOS 取得 APNs Token（可選）
+    if (Platform.isIOS) {
+      final apnsToken = await _fcm.getAPNSToken();
+      print('🍎 APNs Token: $apnsToken');
+    }
+
+    // 前景通知事件監聽
     FirebaseMessaging.onMessage.listen(_handleMessage);
 
-    // 背景通知處理（點擊時觸發）
+    // 點擊通知打開 App 的事件
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
 
-    // Android: 針對長時間未開啟 App 的狀況
-    RemoteMessage? initialMessage = await _fcm.getInitialMessage();
+    // App 從 terminated 狀態啟動時，有通知可處理
+    final initialMessage = await _fcm.getInitialMessage();
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
 
-    // 印出 token（測試用，可上傳至後端）
+    // 拿到 FCM token
     final token = await _fcm.getToken();
-    print('FCM Token: $token');
+    print('📱 FCM Token: $token');
   }
 
-  // 背景訊息處理器（必須是頂層函數）
-  static Future<void> backgroundHandler(RemoteMessage message) async {
-    await _showLocalNotification(message);
-  }
-
-  // 處理訊息（共用）
   static Future<void> _handleMessage(RemoteMessage message) async {
-    await _showLocalNotification(message);
+    await showLocalNotification(message);
   }
 
-  // 顯示通知
-  static Future<void> _showLocalNotification(RemoteMessage message) async {
+  static Future<void> showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
+    // Android 通知樣式
     const androidDetails = AndroidNotificationDetails(
       'default_channel',
       '預設頻道',
@@ -57,7 +81,13 @@ class NotificationService {
       priority: Priority.high,
     );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    // iOS 通知樣式
+    const iosDetails = DarwinNotificationDetails();
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     await _local.show(
       0,
