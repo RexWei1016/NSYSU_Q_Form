@@ -26,7 +26,7 @@ class NotificationService {
 
     const initSettings = InitializationSettings(
       android: androidSettings,
-      iOS: iosSettings, // ✅ 加入 iOS 初始化
+      iOS: iosSettings, // 加入 iOS 初始化
     );
 
     await _local.initialize(initSettings);
@@ -45,7 +45,7 @@ class NotificationService {
     // iOS 取得 APNs Token（可選）
     if (Platform.isIOS) {
       final apnsToken = await _fcm.getAPNSToken();
-      print('🍎 APNs Token: $apnsToken');
+      print(' APNs Token: $apnsToken');
     }
 
     // 前景通知事件監聽
@@ -62,7 +62,7 @@ class NotificationService {
 
     // 拿到 FCM token
     final token = await _fcm.getToken();
-    print('📱 FCM Token: $token');
+    print(' FCM Token: $token');
   }
 
   static Future<void> _handleMessage(RemoteMessage message) async {

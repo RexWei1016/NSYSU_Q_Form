@@ -1,10 +1,10 @@
-// lib/viewmodels/profile_view_model.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
-import '../services/local_storage_service.dart';
+import '../repositories/profile_repository.dart';
 
 class ProfileViewModel extends ChangeNotifier {
+  final ProfileRepository _repository = ProfileRepository();
+
   UserProfile _profile = const UserProfile(
     email: 'example@email.com',
     department: '資訊管理學系',
@@ -17,7 +17,7 @@ class ProfileViewModel extends ChangeNotifier {
   UserProfile get profile => _profile;
 
   Future<UserProfile> loadProfileWithReturn() async {
-    final data = await LocalStorageService.getProfile();
+    final data = await _repository.getLocalProfile();
     if (data != null) {
       _profile = data;
       notifyListeners();
@@ -27,7 +27,8 @@ class ProfileViewModel extends ChangeNotifier {
 
   Future<void> updateProfile(UserProfile newProfile) async {
     _profile = newProfile;
-    await LocalStorageService.saveProfile(_profile);
+    await _repository.saveLocalProfile(newProfile);
+    await _repository.syncProfileToServer(newProfile);
     notifyListeners();
   }
 }

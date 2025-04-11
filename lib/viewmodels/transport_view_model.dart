@@ -1,9 +1,10 @@
-// transport_view_model.dart
 import 'package:flutter/material.dart';
 import '../models/transport_record.dart';
-import '../services/transport_db_service.dart';
+import '../repositories/transport_record_repository.dart';
 
 class TransportViewModel extends ChangeNotifier {
+  final _repo = TransportRecordRepository();
+
   int todaySteps = 0;
   int todayBike = 0;
   int todayPublic = 0;
@@ -11,7 +12,7 @@ class TransportViewModel extends ChangeNotifier {
   List<TransportRecord> weeklyRecords = [];
 
   Future<void> loadWeeklyData() async {
-    weeklyRecords = await TransportDBService.instance.getWeeklyRecords();
+    weeklyRecords = await _repo.getWeeklyRecords();
     notifyListeners();
   }
 
@@ -22,10 +23,13 @@ class TransportViewModel extends ChangeNotifier {
       bike: bike,
       publicTransport: publicTransport,
     );
-    await TransportDBService.instance.insertOrUpdateRecord(record);
+
+    await _repo.insertOrUpdateRecord(record);
+
     todaySteps = steps;
     todayBike = bike;
     todayPublic = publicTransport;
+
     await loadWeeklyData();
   }
 }
