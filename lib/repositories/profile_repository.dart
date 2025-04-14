@@ -6,7 +6,7 @@ import '../services/local_storage_service.dart';
 import 'package:flutter/foundation.dart';
 
 class ProfileRepository {
-  final _apiUrl = 'http://10.0.2.2:5026/api/Participant';
+  static const String baseUrl = 'http://10.0.2.2:5026';
 
   Future<UserProfile?> getLocalProfile() async {
     return await LocalStorageService.getProfile();
@@ -17,7 +17,7 @@ class ProfileRepository {
   }
 
   Future<void> syncProfileToServer(UserProfile profile) async {
-    final url = Uri.parse(_apiUrl);
+    final url = Uri.parse('$baseUrl/api/Participant');
     final token = await FirebaseMessaging.instance.getToken() ?? 'no-token';
 
     final body = jsonEncode({
@@ -36,6 +36,26 @@ class ProfileRepository {
       }
     } catch (e) {
       debugPrint('API 錯誤: $e');
+    }
+  }
+
+  Future<void> joinStudy(String uuid, String studyId) async {
+    final url = Uri.parse('$baseUrl/api/Participant/join');
+    final body = jsonEncode({
+      'uuid': uuid,
+      'studyId': studyId,
+    });
+
+    try {
+      final response = await http.post(url, headers: {
+        'Content-Type': 'application/json',
+      }, body: body);
+
+      if (response.statusCode != 200) {
+        debugPrint('加入研究失敗: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('加入研究 API 錯誤: $e');
     }
   }
 }

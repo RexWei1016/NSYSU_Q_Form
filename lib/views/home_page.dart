@@ -44,6 +44,22 @@ class HomePage extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 12),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: ElevatedButton.icon(
+              onPressed: () => vm.onScanPressed(context),
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('掃描 QR 加入研究'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+          ),
+
           // 🔧 可放其他內容
           const Expanded(
             child: Center(

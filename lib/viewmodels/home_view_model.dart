@@ -18,4 +18,9 @@ class HomeViewModel extends ChangeNotifier {
   void onFoodPressed(BuildContext context) {
     Navigator.pushNamed(context, '/food_record');
   }
+
+
+  void onScanPressed(BuildContext context) {
+    Navigator.pushNamed(context, '/scan_qr');
+  }
 }

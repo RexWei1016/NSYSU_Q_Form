@@ -3,6 +3,7 @@ import 'package:nsysu_q_form/services/NotificationService.dart';
 import 'package:nsysu_q_form/viewmodels/food_record_view_model.dart';
 import 'package:nsysu_q_form/viewmodels/transport_view_model.dart';
 import 'package:nsysu_q_form/views/food_record_page.dart';
+import 'package:nsysu_q_form/views/scan_qr_page.dart';
 import 'package:provider/provider.dart';
 import 'views/home_page.dart';
 import 'viewmodels/home_view_model.dart';
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
         '/profile': (_) => const ProfilePage(),
         '/transport': (_) => const TransportPage(),
         '/food_record': (_) => const FoodRecordPage(),
+        '/scan_qr': (_) => const ScanQRPage(),
       },
     );
   }

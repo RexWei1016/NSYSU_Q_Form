@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
 import '../repositories/profile_repository.dart';
 
@@ -31,4 +34,10 @@ class ProfileViewModel extends ChangeNotifier {
     await _repository.syncProfileToServer(newProfile);
     notifyListeners();
   }
+
+  Future<void> joinStudy(String studyId) async {
+    await _repository.joinStudy(_profile.userId, studyId);
+  }
+
+
 }
