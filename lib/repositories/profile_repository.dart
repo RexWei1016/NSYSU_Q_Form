@@ -6,7 +6,9 @@ import '../services/local_storage_service.dart';
 import 'package:flutter/foundation.dart';
 
 class ProfileRepository {
-  static const String baseUrl = 'http://10.0.2.2:5026';
+  // static const String baseUrl = 'http://10.0.2.2:5026';
+  static const String baseUrl = 'https://nsysu-q-backside.onrender.com';
+
 
   Future<UserProfile?> getLocalProfile() async {
     return await LocalStorageService.getProfile();

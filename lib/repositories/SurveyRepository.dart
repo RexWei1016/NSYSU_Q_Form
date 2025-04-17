@@ -8,7 +8,8 @@ import '../services/transport_db_service.dart';
 import 'package:flutter/foundation.dart';
 
 class SurveyRepository {
-  static const String baseUrl = 'http://10.0.2.2:5026';
+  // static const String baseUrl = 'http://10.0.2.2:5026';
+  static const String baseUrl = 'https://nsysu-q-backside.onrender.com';
 
   Future<List<Map<String, dynamic>>> getAvailableSurveys(String uuid) async {
     final url = Uri.parse('$baseUrl/api/Participant/$uuid/surveys');
