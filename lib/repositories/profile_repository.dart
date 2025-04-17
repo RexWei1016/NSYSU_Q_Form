@@ -39,7 +39,7 @@ class ProfileRepository {
     }
   }
 
-  Future<void> joinStudy(String uuid, String studyId) async {
+  Future<String?> joinStudy(String uuid, String studyId) async {
     final url = Uri.parse('$baseUrl/api/Participant/join');
     final body = jsonEncode({
       'uuid': uuid,
@@ -51,11 +51,17 @@ class ProfileRepository {
         'Content-Type': 'application/json',
       }, body: body);
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 200) {
+        return null; // null 代表成功
+      } else {
         debugPrint('加入研究失敗: ${response.body}');
+        return response.body; // 回傳錯誤訊息
       }
     } catch (e) {
       debugPrint('加入研究 API 錯誤: $e');
+      return '無法連線至伺服器';
     }
   }
+
+
 }

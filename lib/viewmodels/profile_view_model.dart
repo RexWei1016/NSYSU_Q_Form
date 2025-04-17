@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
 import '../repositories/profile_repository.dart';
-
+import '../repositories/SurveyRepository.dart';
 class ProfileViewModel extends ChangeNotifier {
   final ProfileRepository _repository = ProfileRepository();
+  final SurveyRepository _surveyRepository = SurveyRepository();
 
   UserProfile _profile = const UserProfile(
     email: 'example@email.com',
@@ -35,9 +36,20 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> joinStudy(String studyId) async {
-    await _repository.joinStudy(_profile.userId, studyId);
+  Future<void> syncToServerIfNeeded() async {
+    if (_profile.userId.isNotEmpty) {
+      await _repository.syncProfileToServer(_profile);
+    }
   }
+
+  Future<String?> joinStudy(String studyId) async {
+    return await _repository.joinStudy(_profile.userId, studyId);
+  }
+
+  Future<List<String>> getMySurveys() async {
+    return await _surveyRepository.fetchSurveyLinks(_profile);
+  }
+
 
 
 }
