@@ -46,7 +46,7 @@ class SurveyRepository {
     final transportRecords = await TransportDBService.instance.getWeeklyRecords();
     final todayTransport = transportRecords.firstWhere(
           (r) => r.date == dateStr,
-      orElse: () => TransportRecord(date: dateStr, steps: 0, bike: 0, publicTransport: 0),
+      orElse: () => TransportRecord(date: dateStr, steps: 0, bike: 0, publicTransport: 0, motorcycle: 0),
     );
 
     for (final s in surveys) {

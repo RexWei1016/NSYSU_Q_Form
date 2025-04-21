@@ -4,6 +4,10 @@
 <dict>
     <key>NSCameraUsageDescription</key>
     <string>需要使用相機來掃描 QRCode</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>我們需要讀取您的健康資料來顯示每日步數</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>我們需要更新您的健康資料</string>
 
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>

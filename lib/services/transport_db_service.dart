@@ -24,6 +24,7 @@ class TransportDBService {
             date TEXT PRIMARY KEY,
             steps INTEGER,
             bike INTEGER,
+            motorcycle INTEGER,
             public INTEGER
           )
         ''');

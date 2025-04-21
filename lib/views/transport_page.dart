@@ -15,11 +15,17 @@ class _TransportPageState extends State<TransportPage> {
   final stepsController = TextEditingController();
   final bikeController = TextEditingController();
   final publicController = TextEditingController();
+  final motorcycleController = TextEditingController();
+
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<TransportViewModel>().loadWeeklyData());
+    final vm = context.read<TransportViewModel>();
+    Future.microtask(() async {
+      await vm.loadWeeklyData();
+      await vm.fetchStepsFromHealth(); // ← 自動抓取今日步數
+    });
   }
 
   @override
@@ -48,6 +54,12 @@ class _TransportPageState extends State<TransportPage> {
             ),
             const SizedBox(height: 10),
             TextField(
+              controller: motorcycleController,
+              decoration: const InputDecoration(labelText: '今日摩托車次數', border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 10),
+            TextField(
               controller: publicController,
               decoration: const InputDecoration(labelText: '今日公共交通次數', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
@@ -57,15 +69,19 @@ class _TransportPageState extends State<TransportPage> {
               onPressed: () {
                 final steps = int.tryParse(stepsController.text) ?? 0;
                 final bike = int.tryParse(bikeController.text) ?? 0;
+                final motorcycle = int.tryParse(motorcycleController.text) ?? 0;
                 final pub = int.tryParse(publicController.text) ?? 0;
+
                 final today = DateTime.now().toIso8601String().substring(0, 10);
-                vm.submitToday(today, steps, bike, pub);
+                vm.submitToday(today, steps, bike, motorcycle, pub);
+
               },
               child: const Text('提交今日紀錄'),
             ),
             const SizedBox(height: 10),
             Text('今日步數：${vm.todaySteps}', style: const TextStyle(fontSize: 16)),
             Text('今日摩托車次數：${vm.todayBike}', style: const TextStyle(fontSize: 16)),
+            Text('今日腳踏車次數：${vm.todayBike}', style: const TextStyle(fontSize: 16)),
             Text('今日公共交通次數：${vm.todayPublic}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
             Card(
@@ -78,6 +94,7 @@ class _TransportPageState extends State<TransportPage> {
                     columns: const [
                       DataColumn(label: Text('日期')),
                       DataColumn(label: Text('步數')),
+                      DataColumn(label: Text('腳踏車')),
                       DataColumn(label: Text('摩托車')),
                       DataColumn(label: Text('公共交通')),
                     ],
@@ -85,6 +102,7 @@ class _TransportPageState extends State<TransportPage> {
                       DataCell(Text(e.date.substring(5))),
                       DataCell(Text('${e.steps}')),
                       DataCell(Text('${e.bike}')),
+                      DataCell(Text('${e.motorcycle}')),
                       DataCell(Text('${e.publicTransport}')),
                     ])).toList(),
                   ),
