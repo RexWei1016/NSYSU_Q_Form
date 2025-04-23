@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import '../utils/PermissionManager.dart';
 import '../viewmodels/home_view_model.dart';
 import '../viewmodels/profile_view_model.dart';
 
@@ -16,7 +17,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await PermissionManager.requestAllPermissions(); // 呼叫集中管理的權限工具
       context.read<ProfileViewModel>().loadProfileWithReturn();
     });
   }
@@ -80,20 +82,43 @@ class _HomePageState extends State<HomePage> {
             child: ElevatedButton.icon(
               onPressed: () async {
                 final profileVM = context.read<ProfileViewModel>();
-                final urls = await profileVM.getMySurveys();
-                if (urls.isNotEmpty) {
-                  final url = urls.first;
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+                // 顯示等待畫面
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  final urls = await profileVM.getMySurveys();
+
+                  // 關閉等待畫面
+                  Navigator.of(context).pop();
+
+                  if (urls.isNotEmpty) {
+                    final url = urls.first;
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('無法開啟問卷連結')),
+                      );
+                    }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('無法開啟問卷連結')),
+                      const SnackBar(content: Text('目前沒有可填寫的問卷')),
                     );
                   }
-                } else {
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  final errorMessage = e.toString().contains('UUID 為空')
+                      ? '請先設定個人基本資料（UUID）'
+                      : '取得問卷連結時發生錯誤';
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('目前沒有可填寫的問卷')),
+                    SnackBar(content: Text(errorMessage)),
                   );
+                  debugPrint('❌ 錯誤：$e');
                 }
               },
               icon: const Icon(Icons.assignment),
