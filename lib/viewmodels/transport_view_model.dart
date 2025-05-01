@@ -1,13 +1,16 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
+import 'package:intl/intl.dart';
 import '../models/transport_record.dart';
 import '../repositories/transport_record_repository.dart';
 
 class TransportViewModel extends ChangeNotifier {
   final _repo = TransportRecordRepository();
 
+  List<Map<String, dynamic>> weekRecords = [];
   int todaySteps = 0;
   int todayBike = 0;
   int todayPublic = 0;
@@ -32,25 +35,36 @@ class TransportViewModel extends ChangeNotifier {
     }
   }
 
+
   Future<void> loadWeeklyData() async {
-    weeklyRecords = await _repo.getWeeklyRecords();
+    final allRecords = await _repo.getWeeklyRecords();
 
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final todayRecord = weeklyRecords.firstWhere(
-          (r) => r.date == today,
-      orElse: () => TransportRecord(
-        date: today,
-        steps: 0,
-        bike: 0,
-        publicTransport: 0,
-        motorcycle: 0,
-      ),
-    );
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
 
-    todaySteps = todayRecord.steps;
-    todayBike = todayRecord.bike;
-    todayMotorcycle = todayRecord.motorcycle;
-    todayPublic = todayRecord.publicTransport;
+    weekRecords.clear();
+
+    for (int i = 0; i < 7; i++) {
+      final day = monday.add(Duration(days: i));
+      final dateStr = DateFormat('yyyy-MM-dd').format(day);
+
+      final r = allRecords.firstWhereOrNull((e) => e.date == dateStr);
+
+      weekRecords.add({
+        'date': dateStr,
+        'steps': r?.steps ?? '-',
+        'bike': r?.bike ?? '-',
+        'motorcycle': r?.motorcycle ?? '-',
+        'public': r?.publicTransport ?? '-',
+      });
+
+      if (dateStr == DateFormat('yyyy-MM-dd').format(now)) {
+        todaySteps = r?.steps ?? 0;
+        todayBike = r?.bike ?? 0;
+        todayMotorcycle = r?.motorcycle ?? 0;
+        todayPublic = r?.publicTransport ?? 0;
+      }
+    }
 
     notifyListeners();
   }

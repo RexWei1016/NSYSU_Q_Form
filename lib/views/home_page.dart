@@ -77,6 +77,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: ElevatedButton.icon(
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(errorMessage)),
                   );
-                  debugPrint('❌ 錯誤：$e');
+                  debugPrint('錯誤：$e');
                 }
               },
               icon: const Icon(Icons.assignment),
@@ -130,18 +131,18 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              const testUrl = 'https://www.google.com';
-              final uri = Uri.parse(testUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } else {
-                debugPrint('❌ 無法開啟 Google 網頁');
-              }
-            },
-            child: const Text('測試開啟 Google'),
-          ),
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     const testUrl = 'https://www.google.com';
+          //     final uri = Uri.parse(testUrl);
+          //     if (await canLaunchUrl(uri)) {
+          //       await launchUrl(uri, mode: LaunchMode.externalApplication);
+          //     } else {
+          //       debugPrint('❌ 無法開啟 Google 網頁');
+          //     }
+          //   },
+          //   child: const Text('測試開啟 Google'),
+          // ),
 
           // 🔧 可放其他內容
           const Expanded(
