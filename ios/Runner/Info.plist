@@ -55,5 +55,22 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>我們需要您的位置資料來進行交通記錄</string>
+
+    <key>NSMotionUsageDescription</key>
+    <string>我們需要您的感應器資料來分析交通活動</string>
+
+    <key>NSUserTrackingUsageDescription</key>
+    <string>我們會使用這些資料來改善您的使用體驗</string>
+
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>我們需要藍牙權限以支援設備連線</string>
+
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>remote-notification</string>
+    </array>
+
 </dict>
 </plist>

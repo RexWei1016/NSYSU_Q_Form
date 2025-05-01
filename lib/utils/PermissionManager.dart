@@ -4,18 +4,18 @@ import 'package:permission_handler/permission_handler.dart';
 
 class PermissionManager {
   static Future<void> requestAllPermissions() async {
-    final statuses = await [
-      Permission.activityRecognition,
-      Permission.sensors,
-      Permission.camera,
+    final permissions = [
       Permission.location,
       Permission.notification,
-    ].request();
+      Permission.sensors,
+      Permission.camera,
+    ];
 
-    statuses.forEach((permission, status) {
+    for (final permission in permissions) {
+      final status = await permission.request();
       if (!status.isGranted) {
         debugPrint('$permission 未授權');
       }
-    });
+    }
   }
 }

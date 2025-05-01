@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../utils/PermissionManager.dart';
 import '../viewmodels/home_view_model.dart';
 import '../viewmodels/profile_view_model.dart';
+import '../viewmodels/transport_view_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await PermissionManager.requestAllPermissions(); // 呼叫集中管理的權限工具
       context.read<ProfileViewModel>().loadProfileWithReturn();
+      await context.read<TransportViewModel>().fetchStepsFromHealth();
     });
   }
 
@@ -143,8 +145,37 @@ class _HomePageState extends State<HomePage> {
           //   },
           //   child: const Text('測試開啟 Google'),
           // ),
+          Consumer<TransportViewModel>(
+            builder: (context, vm, child) {
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      '今日步數',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.green.shade100,
+                        border: Border.all(color: Colors.green, width: 4),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${vm.todaySteps}',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
 
-          // 🔧 可放其他內容
           const Expanded(
             child: Center(
               child: Text(
