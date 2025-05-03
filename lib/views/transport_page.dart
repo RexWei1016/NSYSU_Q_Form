@@ -22,6 +22,12 @@ class _TransportPageState extends State<TransportPage> {
     Future.microtask(() async {
       await vm.loadWeeklyData();
       await vm.fetchStepsFromHealth();
+
+      stepsController.text = vm.todaySteps.toString();
+      bikeController.text = vm.todayBike.toString();
+      motorcycleController.text = vm.todayMotorcycle.toString();
+      publicController.text = vm.todayPublic.toString();
+
     });
   }
 
