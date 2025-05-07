@@ -112,11 +112,9 @@ class _ProfilePageState extends State<ProfilePage> {
     _profileFuture = context.read<ProfileViewModel>().loadProfileWithReturn();
   }
 
-  void saveProfile() {
-    final newProfile = context
-        .read<ProfileViewModel>()
-        .profile
-        .copyWith(
+  void saveProfile() async {
+    final profileVM = context.read<ProfileViewModel>();
+    final newProfile = profileVM.profile.copyWith(
       email: emailController.text,
       department: selectedDepartment ?? '',
       grade: selectedGrade ?? '',
@@ -124,10 +122,28 @@ class _ProfilePageState extends State<ProfilePage> {
       gender: selectedGender ?? '',
       userId: userIdController.text,
     );
-    context.read<ProfileViewModel>().updateProfile(newProfile);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已儲存個人資料')),
+
+    // 顯示等待 Dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      await profileVM.updateProfile(newProfile);
+      Navigator.of(context).pop(); // 關閉等待 Dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已儲存個人資料')),
+      );
+    } catch (e) {
+      Navigator.of(context).pop(); // ✅ 確保錯誤時也關閉
+      debugPrint('儲存個人資料錯誤: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('儲存失敗，請稍後再試')),
+      );
+    }
   }
 
   Widget buildTextField(String label, TextEditingController controller,

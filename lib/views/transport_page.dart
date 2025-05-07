@@ -1,8 +1,6 @@
-// transport_page.dart (View)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/transport_view_model.dart';
-import '../models/transport_record.dart';
 
 class TransportPage extends StatefulWidget {
   const TransportPage({super.key});
@@ -14,12 +12,23 @@ class TransportPage extends StatefulWidget {
 class _TransportPageState extends State<TransportPage> {
   final stepsController = TextEditingController();
   final bikeController = TextEditingController();
+  final motorcycleController = TextEditingController();
   final publicController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<TransportViewModel>().loadWeeklyData());
+    final vm = context.read<TransportViewModel>();
+    Future.microtask(() async {
+      await vm.loadWeeklyData();
+      await vm.fetchStepsFromHealth();
+
+      stepsController.text = vm.todaySteps.toString();
+      bikeController.text = vm.todayBike.toString();
+      motorcycleController.text = vm.todayMotorcycle.toString();
+      publicController.text = vm.todayPublic.toString();
+
+    });
   }
 
   @override
@@ -34,66 +43,84 @@ class _TransportPageState extends State<TransportPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: stepsController,
-              decoration: const InputDecoration(labelText: '今日步數', border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-            ),
+            const Text('今日紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            TextField(
-              controller: bikeController,
-              decoration: const InputDecoration(labelText: '今日摩托車次數', border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: publicController,
-              decoration: const InputDecoration(labelText: '今日公共交通次數', border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-            ),
+            _buildInputField('今日步數', stepsController),
+            _buildInputField('今日腳踏車次數', bikeController),
+            _buildInputField('今日摩托車次數', motorcycleController),
+            _buildInputField('今日公共交通次數', publicController),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 final steps = int.tryParse(stepsController.text) ?? 0;
                 final bike = int.tryParse(bikeController.text) ?? 0;
+                final motorcycle = int.tryParse(motorcycleController.text) ?? 0;
                 final pub = int.tryParse(publicController.text) ?? 0;
                 final today = DateTime.now().toIso8601String().substring(0, 10);
-                vm.submitToday(today, steps, bike, pub);
+                vm.submitToday(today, steps, bike, motorcycle, pub);
               },
               child: const Text('提交今日紀錄'),
             ),
-            const SizedBox(height: 10),
-            Text('今日步數：${vm.todaySteps}', style: const TextStyle(fontSize: 16)),
-            Text('今日摩托車次數：${vm.todayBike}', style: const TextStyle(fontSize: 16)),
-            Text('今日公共交通次數：${vm.todayPublic}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 20),
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('日期')),
-                      DataColumn(label: Text('步數')),
-                      DataColumn(label: Text('摩托車')),
-                      DataColumn(label: Text('公共交通')),
-                    ],
-                    rows: vm.weeklyRecords.map((e) => DataRow(cells: [
-                      DataCell(Text(e.date.substring(5))),
-                      DataCell(Text('${e.steps}')),
-                      DataCell(Text('${e.bike}')),
-                      DataCell(Text('${e.publicTransport}')),
-                    ])).toList(),
-                  ),
-                ),
-              ),
-            ),
+            const Text('一週紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            _buildWeekTable(vm),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildInputField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  Widget _buildWeekTable(TransportViewModel vm) {
+    final weekDays = ['一', '二', '三', '四', '五', '六', '日'];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('星期')),
+          DataColumn(label: Text('步數')),
+          DataColumn(label: Text('腳踏車')),
+          DataColumn(label: Text('摩托車')),
+          DataColumn(label: Text('公共交通')),
+        ],
+        rows: List.generate(7, (i) {
+          final data = vm.weekRecords.length > i ? vm.weekRecords[i] : {};
+          final isOdd = i % 2 == 1;
+          final rowColor = isOdd ? Colors.grey.shade100 : null;
+
+          return DataRow(
+            color: rowColor != null
+                ? MaterialStateProperty.all(rowColor)
+                : null,
+            cells: [
+              DataCell(Text(weekDays[i])),
+              DataCell(Text('${data['steps'] ?? '-'}')),
+              DataCell(Text('${data['bike'] ?? '-'}')),
+              DataCell(Text('${data['motorcycle'] ?? '-'}')),
+              DataCell(Text('${data['public'] ?? '-'}')),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+
 }

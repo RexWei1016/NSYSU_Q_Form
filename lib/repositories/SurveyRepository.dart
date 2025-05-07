@@ -31,9 +31,9 @@ class SurveyRepository {
 
   Future<List<String>> fetchSurveyLinks(UserProfile profile) async {
     final uuid = profile.userId;
+
     if (uuid.isEmpty) {
-      debugPrint(' UUID 為空，無法查詢問卷');
-      return [];
+      throw Exception('UUID 為空，請先登入 / 註冊'); //明確錯誤
     }
 
     final surveys = await getAvailableSurveys(uuid);
@@ -46,7 +46,7 @@ class SurveyRepository {
     final transportRecords = await TransportDBService.instance.getWeeklyRecords();
     final todayTransport = transportRecords.firstWhere(
           (r) => r.date == dateStr,
-      orElse: () => TransportRecord(date: dateStr, steps: 0, bike: 0, publicTransport: 0),
+      orElse: () => TransportRecord(date: dateStr, steps: 0, bike: 0, publicTransport: 0, motorcycle: 0),
     );
 
     for (final s in surveys) {
@@ -79,7 +79,8 @@ class SurveyRepository {
       }
 
       addParam('今日步數', todayTransport.steps.toString());
-      addParam('摩托車次數', todayTransport.bike.toString());
+      addParam('摩托車次數', todayTransport.motorcycle.toString());
+      addParam('腳踏車次數', todayTransport.bike.toString());
       addParam('公共交通次數', todayTransport.publicTransport.toString());
 
       links.add(prefilledUrl);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
+import '../utils/PermissionManager.dart';
 import '../viewmodels/home_view_model.dart';
 import '../viewmodels/profile_view_model.dart';
+import '../viewmodels/transport_view_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,8 +18,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await PermissionManager.requestAllPermissions(); // 呼叫集中管理的權限工具
       context.read<ProfileViewModel>().loadProfileWithReturn();
+      await context.read<TransportViewModel>().fetchStepsFromHealth();
     });
   }
 
@@ -75,25 +79,49 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: ElevatedButton.icon(
               onPressed: () async {
                 final profileVM = context.read<ProfileViewModel>();
-                final urls = await profileVM.getMySurveys();
-                if (urls.isNotEmpty) {
-                  final url = urls.first;
-                  if (await canLaunchUrl(Uri.parse(url))) {
-                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+                // 顯示等待畫面
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  final urls = await profileVM.getMySurveys();
+
+                  // 關閉等待畫面
+                  Navigator.of(context).pop();
+
+                  if (urls.isNotEmpty) {
+                    final url = urls.first;
+                    if (await canLaunchUrl(Uri.parse(url))) {
+                      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('無法開啟問卷連結')),
+                      );
+                    }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('無法開啟問卷連結')),
+                      const SnackBar(content: Text('目前沒有可填寫的問卷')),
                     );
                   }
-                } else {
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  final errorMessage = e.toString().contains('UUID 為空')
+                      ? '請先設定個人基本資料（UUID）'
+                      : '取得問卷連結時發生錯誤';
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('目前沒有可填寫的問卷')),
+                    SnackBar(content: Text(errorMessage)),
                   );
+                  debugPrint('錯誤：$e');
                 }
               },
               icon: const Icon(Icons.assignment),
@@ -105,20 +133,49 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              const testUrl = 'https://www.google.com';
-              final uri = Uri.parse(testUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } else {
-                debugPrint('❌ 無法開啟 Google 網頁');
-              }
+          // ElevatedButton(
+          //   onPressed: () async {
+          //     const testUrl = 'https://www.google.com';
+          //     final uri = Uri.parse(testUrl);
+          //     if (await canLaunchUrl(uri)) {
+          //       await launchUrl(uri, mode: LaunchMode.externalApplication);
+          //     } else {
+          //       debugPrint('❌ 無法開啟 Google 網頁');
+          //     }
+          //   },
+          //   child: const Text('測試開啟 Google'),
+          // ),
+          Consumer<TransportViewModel>(
+            builder: (context, vm, child) {
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      '今日步數',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.green.shade100,
+                        border: Border.all(color: Colors.green, width: 4),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${vm.todaySteps}',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             },
-            child: const Text('測試開啟 Google'),
           ),
 
-          // 🔧 可放其他內容
           const Expanded(
             child: Center(
               child: Text(

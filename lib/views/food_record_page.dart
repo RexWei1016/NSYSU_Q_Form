@@ -72,7 +72,7 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: const [
-          DataColumn(label: Text('日')),
+          DataColumn(label: Text('星期')),
           DataColumn(label: Text('早餐')),
           DataColumn(label: Text('午餐')),
           DataColumn(label: Text('晚餐')),

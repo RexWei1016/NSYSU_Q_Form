@@ -31,13 +31,14 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
-    defaultConfig {
-        applicationId = "com.nsysu.mis.nsysu_q_form"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
+defaultConfig {
+    applicationId = "com.nsysu.mis.nsysu_q_form"
+    minSdk = 28
+    targetSdk = flutter.targetSdkVersion
+    versionCode = flutter.versionCode
+    versionName = flutter.versionName
+}
+
 
     // ✅ 新增：簽章設定
     signingConfigs {
