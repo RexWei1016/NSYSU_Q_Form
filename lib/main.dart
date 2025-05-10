@@ -21,7 +21,6 @@ void main() async {
   // 請求 ATT 權限
   final status = await AppTrackingTransparency.trackingAuthorizationStatus;
   if (status == TrackingStatus.notDetermined) {
-    // 等待 1 秒後再請求，避免影響啟動體驗
     await Future.delayed(const Duration(seconds: 1));
     await AppTrackingTransparency.requestTrackingAuthorization();
   }
@@ -29,7 +28,12 @@ void main() async {
   // 背景推播處理器註冊
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  await NotificationService.init(); // 初始化通知服務
+  // 包起來避免模擬器掛掉畫面不出現
+  try {
+    await NotificationService.init();
+  } catch (e, stack) {
+    print("⚠️ NotificationService 初始化失敗：$e");
+  }
 
   runApp(
     MultiProvider(
@@ -43,6 +47,7 @@ void main() async {
     ),
   );
 }
+
 
 
 class MyApp extends StatelessWidget {
