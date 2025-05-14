@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/home_view_model.dart';
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("背景收到通知: ${message.notification?.title}");
@@ -73,6 +75,18 @@ class NotificationService {
     final notification = message.notification;
     if (notification == null) return;
 
+    // 更新 HomeViewModel 中的通知內容
+    if (navigatorKey.currentContext != null) {
+      final homeViewModel = Provider.of<HomeViewModel>(
+        navigatorKey.currentContext!,
+        listen: false,
+      );
+      homeViewModel.updateNotification(
+        notification.title ?? '',
+        notification.body ?? '',
+      );
+    }
+
     // Android 通知樣式
     const androidDetails = AndroidNotificationDetails(
       'default_channel',
@@ -97,3 +111,6 @@ class NotificationService {
     );
   }
 }
+
+// 全域導航鍵，用於在非 Widget 中存取 context
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

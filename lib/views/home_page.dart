@@ -65,6 +65,46 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
+          // 🔔 最新通知區塊
+          if (vm.latestNotificationTitle != null || vm.latestNotificationBody != null)
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              color: Colors.blue.shade50,
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '🔔 最新通知',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    if (vm.latestNotificationTitle != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        vm.latestNotificationTitle!,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                    if (vm.latestNotificationBody != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        vm.latestNotificationBody!,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
           const SizedBox(height: 12),
 
           Padding(
@@ -177,14 +217,7 @@ class _HomePageState extends State<HomePage> {
             },
           ),
 
-          const Expanded(
-            child: Center(
-              child: Text(
-                '這裡...可以顯示圖表、紀錄摘要等等 (預計)',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ),
-          ),
+          const Expanded(child: SizedBox()),
         ],
       ),
 
