@@ -6,9 +6,12 @@ import 'package:health/health.dart';
 import 'package:intl/intl.dart';
 import '../models/transport_record.dart';
 import '../repositories/transport_record_repository.dart';
+import '../services/transport_sync_service.dart';
 
 class TransportViewModel extends ChangeNotifier {
+  bool isSubmitting = false;
   final _repo = TransportRecordRepository();
+  final _syncService = TransportSyncService();
 
   List<Map<String, dynamic>> weekRecords = [];
   int todaySteps = 0;
@@ -94,13 +97,19 @@ class TransportViewModel extends ChangeNotifier {
     }
   }
 
+
   Future<void> submitToday(
       String date,
       int steps,
       int bike,
       int motorcycle,
       int publicTransport,
+      String uuid,
       ) async {
+
+    isSubmitting = true;
+    notifyListeners();
+
     final record = TransportRecord(
       date: date,
       steps: steps,
@@ -109,13 +118,27 @@ class TransportViewModel extends ChangeNotifier {
       publicTransport: publicTransport,
     );
 
-    await _repo.insertOrUpdateRecord(record);
 
-    todaySteps = steps;
-    todayBike = bike;
-    todayMotorcycle = motorcycle;
-    todayPublic = publicTransport;
 
-    await loadWeeklyData();
+    // 呼叫外部同步服務
+    try {
+      // 寫入本地資料
+      await _repo.insertOrUpdateRecord(record);
+      await loadWeeklyData();
+
+      // 更新 UI 狀態
+      todaySteps = steps;
+      todayBike = bike;
+      todayMotorcycle = motorcycle;
+      todayPublic = publicTransport;
+
+      await _syncService.syncRecordToGoogleSheet(record, uuid);
+    } catch (e) {
+      debugPrint('❌ Google Sheet 同步失敗: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
   }
+
 }

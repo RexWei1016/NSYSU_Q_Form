@@ -3,8 +3,10 @@ import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import '../models/food_record.dart';
 import '../repositories/food_record_repository.dart';
+import '../services/food_sync_service.dart';
 
 class FoodRecordViewModel extends ChangeNotifier {
+  final FoodSyncService _syncService = FoodSyncService();
   final FoodRecordRepository _repo = FoodRecordRepository();
 
   List<FoodRecord> todayRecords = [];
@@ -15,11 +17,13 @@ class FoodRecordViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateMeal(String date, String mealType, String bagType) async {
+  Future<FoodRecord> updateLocalMeal(String date, String mealType, String bagType) async {
     final record = FoodRecord(date: date, mealType: mealType, bagType: bagType);
     await _repo.insertRecord(record);
     await loadTodayRecords(date);
+    return record;
   }
+
 
   Future<void> loadWeekRecords() async {
     final now = DateTime.now();

@@ -1,9 +1,12 @@
 // lib/views/food_record_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../services/food_sync_service.dart';
 import '../viewmodels/food_record_view_model.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+
+import '../viewmodels/profile_view_model.dart';
 
 class FoodRecordPage extends StatefulWidget {
   const FoodRecordPage({super.key});
@@ -31,9 +34,23 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
 
   void updateMeal(String meal, String value) async {
     final vm = context.read<FoodRecordViewModel>();
-    await vm.updateMeal(today, meal, value);
-    await vm.loadWeekRecords(); // 確保下方一週紀錄刷新
+    final profile = context.read<ProfileViewModel>().profile;
+    final uuid = profile.userId;
+
+    final record = await vm.updateLocalMeal(today, meal, value);
+
+    try {
+      await FoodSyncService().syncRecordToGoogleSheet(record, uuid);
+      debugPrint(' 同步成功');
+    } catch (e) {
+      debugPrint('同步失敗: $e');
+      // TODO: 可以顯示 UI 提示或排入 retry queue
+    }
+
+    await vm.loadTodayRecords(today);
+    await vm.loadWeekRecords();
   }
+
 
   Widget buildMealSelector(String meal) {
     final vm = context.watch<FoodRecordViewModel>();

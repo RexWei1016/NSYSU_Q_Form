@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodels/profile_view_model.dart';
 import '../viewmodels/transport_view_model.dart';
 
 class TransportPage extends StatefulWidget {
@@ -53,15 +54,36 @@ class _TransportPageState extends State<TransportPage> {
             _buildInputField('今日公共交通次數', publicController),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
+              onPressed: vm.isSubmitting
+                  ? null
+                  : () async {
                 final steps = int.tryParse(stepsController.text) ?? 0;
                 final bike = int.tryParse(bikeController.text) ?? 0;
                 final motorcycle = int.tryParse(motorcycleController.text) ?? 0;
                 final pub = int.tryParse(publicController.text) ?? 0;
                 final today = DateTime.now().toIso8601String().substring(0, 10);
-                vm.submitToday(today, steps, bike, motorcycle, pub);
+
+                final profile = context.read<ProfileViewModel>().profile;
+                final uuid = profile.userId;
+
+                await vm.submitToday(today, steps, bike, motorcycle, pub, uuid);
+
+                // 顯示完成訊息
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('已儲存並同步')),
+                  );
+                }
               },
-              child: const Text('提交今日紀錄'),
+              child: vm.isSubmitting
+                  ? const SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+                  : const Text('提交今日紀錄'),
             ),
             const SizedBox(height: 20),
             const Text('一週紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
