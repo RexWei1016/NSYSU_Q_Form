@@ -21,14 +21,14 @@ class NotificationService {
 
     // iOS 設定：初始化通知
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false, // 初始不請求，在下面統一處理
+      requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
 
     const initSettings = InitializationSettings(
       android: androidSettings,
-      iOS: iosSettings, // 加入 iOS 初始化
+      iOS: iosSettings,
     );
 
     await _local.initialize(initSettings);
@@ -54,12 +54,19 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen(_handleMessage);
 
     // 點擊通知打開 App 的事件
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("點擊通知打開 App: ${message.notification?.title}");
+      _handleMessage(message);
+    });
 
     // App 從 terminated 狀態啟動時，有通知可處理
     final initialMessage = await _fcm.getInitialMessage();
     if (initialMessage != null) {
-      _handleMessage(initialMessage);
+      print("從終止狀態啟動，處理初始通知: ${initialMessage.notification?.title}");
+      // 確保在應用程式完全初始化後再處理通知
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleMessage(initialMessage);
+      });
     }
 
     // 拿到 FCM token
@@ -68,6 +75,7 @@ class NotificationService {
   }
 
   static Future<void> _handleMessage(RemoteMessage message) async {
+    print("處理通知訊息: ${message.notification?.title}");
     await showLocalNotification(message);
   }
 
@@ -75,16 +83,22 @@ class NotificationService {
     final notification = message.notification;
     if (notification == null) return;
 
+    print("更新通知內容到 HomeViewModel: ${notification.title}");
     // 更新 HomeViewModel 中的通知內容
     if (navigatorKey.currentContext != null) {
-      final homeViewModel = Provider.of<HomeViewModel>(
-        navigatorKey.currentContext!,
-        listen: false,
-      );
-      homeViewModel.updateNotification(
-        notification.title ?? '',
-        notification.body ?? '',
-      );
+      try {
+        final homeViewModel = Provider.of<HomeViewModel>(
+          navigatorKey.currentContext!,
+          listen: false,
+        );
+        homeViewModel.updateNotification(
+          notification.title ?? '',
+          notification.body ?? '',
+        );
+        print("成功更新通知內容");
+      } catch (e) {
+        print("更新通知內容時發生錯誤: $e");
+      }
     }
 
     // Android 通知樣式
