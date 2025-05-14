@@ -5,7 +5,7 @@ import '../utils/PermissionManager.dart';
 import '../viewmodels/home_view_model.dart';
 import '../viewmodels/profile_view_model.dart';
 import '../viewmodels/transport_view_model.dart';
-
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
       await context.read<TransportViewModel>().fetchStepsFromHealth();
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
