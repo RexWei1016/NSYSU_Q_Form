@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 
 import '../viewmodels/profile_view_model.dart';
+import '../viewmodels/home_view_model.dart';
 
 class FoodRecordPage extends StatefulWidget {
   const FoodRecordPage({super.key});
@@ -55,19 +56,21 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
 
     try {
       await vm.submitPendingUpdates(today, uuid);
-      // 關閉處理中的對話框
+      
+      // 通知 HomeViewModel 更新狀態
+      await context.read<HomeViewModel>().refreshTodayFoodRecord();
+      
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // 關閉處理中對話框
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('記錄已成功提交')),
+          const SnackBar(content: Text('記錄已儲存')),
         );
       }
     } catch (e) {
-      // 關閉處理中的對話框
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // 關閉處理中對話框
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('提交失敗：$e')),
+          SnackBar(content: Text('儲存失敗: $e')),
         );
       }
     }

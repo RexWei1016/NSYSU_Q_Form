@@ -107,10 +107,17 @@ class NotificationService {
       '預設頻道',
       importance: Importance.max,
       priority: Priority.high,
+      icon: '@mipmap/ic_launcher', // 設定通知圖示
+      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'), // 設定大圖示
+      color: Color(0xFF4CAF50), // 設定通知顏色（綠色）
     );
 
     // iOS 通知樣式
-    const iosDetails = DarwinNotificationDetails();
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
     const notificationDetails = NotificationDetails(
       android: androidDetails,

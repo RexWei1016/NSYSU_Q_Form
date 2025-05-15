@@ -18,6 +18,9 @@ class TransportViewModel extends ChangeNotifier {
   int todayBike = 0;
   int todayPublic = 0;
   int todayMotorcycle = 0;
+  bool _hasTodayRecord = false;
+
+  bool get hasTodayRecord => _hasTodayRecord;
 
   final Health health = Health(); // 使用新版 Health API
 
@@ -37,7 +40,6 @@ class TransportViewModel extends ChangeNotifier {
       debugPrint('Health 初始化失敗: $e');
     }
   }
-
 
   Future<void> loadWeeklyData() async {
     final allRecords = await _repo.getWeeklyRecords();
@@ -66,6 +68,7 @@ class TransportViewModel extends ChangeNotifier {
         todayBike = r?.bike ?? 0;
         todayMotorcycle = r?.motorcycle ?? 0;
         todayPublic = r?.publicTransport ?? 0;
+        _hasTodayRecord = r != null && (r.bike > 0 || r.motorcycle > 0 || r.publicTransport > 0);
       }
     }
 
@@ -90,13 +93,15 @@ class TransportViewModel extends ChangeNotifier {
       }
 
       final steps = await health.getTotalStepsInInterval(start, now);
-      todaySteps = steps ?? 0;
-      notifyListeners();
+      if (steps != null) {
+        todaySteps = steps;
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('讀取步數失敗: $e');
+      // 步數讀取失敗不影響其他記錄的狀態
     }
   }
-
 
   Future<void> submitToday(
       String date,
@@ -118,8 +123,6 @@ class TransportViewModel extends ChangeNotifier {
       publicTransport: publicTransport,
     );
 
-
-
     // 呼叫外部同步服務
     try {
       // 寫入本地資料
@@ -131,6 +134,7 @@ class TransportViewModel extends ChangeNotifier {
       todayBike = bike;
       todayMotorcycle = motorcycle;
       todayPublic = publicTransport;
+      _hasTodayRecord = bike > 0 || motorcycle > 0 || publicTransport > 0;
 
       await _syncService.syncRecordToGoogleSheet(record, uuid);
     } catch (e) {
@@ -140,5 +144,4 @@ class TransportViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 }
