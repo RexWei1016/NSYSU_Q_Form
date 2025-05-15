@@ -220,12 +220,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                     if (urls.isNotEmpty) {
                       final url = urls.first;
-                      if (await canLaunchUrl(Uri.parse(url))) {
-                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                      } else {
+                      try {
+                        final encodedUrl = Uri.encodeFull(url);
+                        final uri = Uri.parse(encodedUrl);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('無法開啟問卷連結')),
+                          );
+                        }
+                      } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('無法開啟問卷連結')),
+                          SnackBar(content: Text('連結格式錯誤：$e')),
                         );
+                        debugPrint('連結錯誤：$e');
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
