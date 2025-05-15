@@ -11,19 +11,48 @@ class FoodRecordViewModel extends ChangeNotifier {
 
   List<FoodRecord> todayRecords = [];
   List<Map<String, String>> weekRecords = [];
+  Map<String, String> _pendingUpdates = {};
+
+  Map<String, String> get pendingUpdates => _pendingUpdates;
 
   Future<void> loadTodayRecords(String date) async {
     todayRecords = await _repo.getRecordsByDate(date);
     notifyListeners();
   }
 
-  Future<FoodRecord> updateLocalMeal(String date, String mealType, String bagType) async {
-    final record = FoodRecord(date: date, mealType: mealType, bagType: bagType);
-    await _repo.insertRecord(record);
-    await loadTodayRecords(date);
-    return record;
+  void updatePendingMeal(String meal, String value) {
+    _pendingUpdates[meal] = value;
+    notifyListeners();
   }
 
+  Future<void> submitPendingUpdates(String date, String uuid) async {
+    if (_pendingUpdates.isEmpty) return;
+
+    // 先更新本地資料庫
+    List<FoodRecord> records = [];
+    for (var entry in _pendingUpdates.entries) {
+      final record = FoodRecord(date: date, mealType: entry.key, bagType: entry.value);
+      await _repo.insertRecord(record);
+      records.add(record);
+    }
+
+    // 同步到 Google Sheet
+    try {
+      await _syncService.syncRecordToGoogleSheet(records, uuid);
+      debugPrint('所有記錄同步成功');
+    } catch (e) {
+      debugPrint('同步失敗: $e');
+      // TODO: 可以顯示 UI 提示或排入 retry queue
+    }
+
+    // 清空待更新列表
+    _pendingUpdates.clear();
+    
+    // 重新載入資料
+    await loadTodayRecords(date);
+    await loadWeekRecords();
+    notifyListeners();
+  }
 
   Future<void> loadWeekRecords() async {
     final now = DateTime.now();

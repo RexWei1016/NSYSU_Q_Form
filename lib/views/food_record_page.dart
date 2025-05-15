@@ -32,29 +32,52 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
     });
   }
 
-  void updateMeal(String meal, String value) async {
+  Future<void> submitRecords() async {
     final vm = context.read<FoodRecordViewModel>();
     final profile = context.read<ProfileViewModel>().profile;
     final uuid = profile.userId;
 
-    final record = await vm.updateLocalMeal(today, meal, value);
-
-    try {
-      await FoodSyncService().syncRecordToGoogleSheet(record, uuid);
-      debugPrint(' 同步成功');
-    } catch (e) {
-      debugPrint('同步失敗: $e');
-      // TODO: 可以顯示 UI 提示或排入 retry queue
+    if (vm.pendingUpdates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('請先選擇用餐記錄')),
+      );
+      return;
     }
 
-    await vm.loadTodayRecords(today);
-    await vm.loadWeekRecords();
-  }
+    // 顯示處理中的對話框
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
 
+    try {
+      await vm.submitPendingUpdates(today, uuid);
+      // 關閉處理中的對話框
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('記錄已成功提交')),
+        );
+      }
+    } catch (e) {
+      // 關閉處理中的對話框
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('提交失敗：$e')),
+        );
+      }
+    }
+  }
 
   Widget buildMealSelector(String meal) {
     final vm = context.watch<FoodRecordViewModel>();
     final selected = vm.todayRecords.firstWhereOrNull((r) => r.mealType == meal);
+    final pendingValue = vm.pendingUpdates[meal];
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,14 +86,14 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
         Wrap(
           spacing: 10,
           children: options.map((opt) {
-            final isSelected = selected?.bagType == opt;
+            final isSelected = pendingValue == opt || (selected?.bagType == opt && pendingValue == null);
             return ChoiceChip(
               label: Text(opt),
               selected: isSelected,
               selectedColor: Colors.green.shade200,
               onSelected: (_) {
                 if (DateFormat('yyyy-MM-dd').format(DateTime.now()) == today) {
-                  updateMeal(meal, opt);
+                  vm.updatePendingMeal(meal, opt);
                 }
               },
             );
@@ -116,6 +139,8 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
   @override
   Widget build(BuildContext context) {
     final meals = ['早餐', '午餐', '晚餐'];
+    final vm = context.watch<FoodRecordViewModel>();
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('購餐紀錄'),
@@ -124,20 +149,35 @@ class _FoodRecordPageState extends State<FoodRecordPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('今日紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ...meals.map(buildMealSelector),
-            const SizedBox(height: 20),
-            const Text('一週紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            buildWeekTable(),
-          ],
-        ),
-      ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('今日紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  ...meals.map(buildMealSelector),
+                  if (vm.pendingUpdates.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: submitRecords,
+                        icon: const Icon(Icons.send),
+                        label: const Text('提交記錄'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(200, 48),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  const Text('一週紀錄', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  buildWeekTable(),
+                ],
+              ),
+            ),
     );
   }
 }

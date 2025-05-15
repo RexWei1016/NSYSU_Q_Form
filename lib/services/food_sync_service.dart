@@ -6,20 +6,23 @@ class FoodSyncService {
   static const String endpoint =
       'https://script.google.com/macros/s/AKfycbzoEb-qgJMkkQAnPqd8aiUiJyupdrhNNfB5dK04rRdZeOCJpXj8J2y7IKUuDqyDlkj2/exec';
 
-  Future<void> syncRecordToGoogleSheet(FoodRecord record, String uuid) async {
-    final payload = [
-      {
-        "日期": record.date,
-        "UUID": uuid,
-        record.mealType: record.bagType,
-      }
-    ];
+  Future<void> syncRecordToGoogleSheet(List<FoodRecord> records, String uuid) async {
+    // 將所有記錄合併成一個物件
+    final Map<String, dynamic> payload = {
+      "日期": records.first.date,
+      "UUID": uuid,
+    };
+
+    // 將每筆記錄的餐點類型加入 payload
+    for (var record in records) {
+      payload[record.mealType] = record.bagType;
+    }
 
     try {
       final response = await http.post(
         Uri.parse(endpoint),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
+        body: jsonEncode([payload]), // 保持陣列格式以符合 API 要求
       );
 
       if (response.statusCode != 200) {
