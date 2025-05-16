@@ -219,19 +219,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     Navigator.of(context).pop();
 
                     if (urls.isNotEmpty) {
-                      final url = urls.first;
                       try {
-                        final encodedUrl = Uri.encodeFull(url);
-                        final uri = Uri.parse(encodedUrl);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('無法開啟問卷連結')),
-                          );
+                        final url = urls.first;
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                         }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
